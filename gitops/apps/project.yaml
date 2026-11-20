@@ -1,0 +1,23 @@
+# Scope what the platform Applications may touch: this repo only, their own namespaces only.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: platform
+  namespace: argocd
+spec:
+  description: Listmate and Trip Split
+  sourceRepos:
+    - https://github.com/ahmedoshelmy/platform-k8s.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: argocd
+    - server: https://kubernetes.default.svc
+      namespace: listmate
+    - server: https://kubernetes.default.svc
+      namespace: trip-split
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"

@@ -1,0 +1,38 @@
+# Prod-like AKS values. Nothing here is deployed by this repo; see environments/aks/README.md.
+api:
+  image:
+    repository: myregistry.azurecr.io/trip-split-api
+    tag: "0.1.0"
+  # Still one pod: the in-memory STOMP broker. Scaling out needs a broker relay first (see README).
+  replicaCount: 1
+
+web:
+  image:
+    repository: myregistry.azurecr.io/trip-split-web
+    tag: "0.1.0"
+  replicaCount: 2
+
+postgres:
+  enabled: false
+database:
+  host: tripsplit-pg.postgres.database.azure.com
+  extraParams: "sslmode=require"
+
+secrets:
+  existingSecret: trip-split-secrets
+  dbPassword: ""
+
+serviceAccount:
+  annotations:
+    azure.workload.identity/client-id: "<managed-identity-client-id>"
+podLabels:
+  azure.workload.identity/use: "true"
+
+ingress:
+  className: webapprouting.kubernetes.azure.com
+  host: tripsplit.example.com
+  tls:
+    - hosts: [tripsplit.example.com]
+      secretName: trip-split-tls
+networkPolicy:
+  ingressControllerNamespace: app-routing-system

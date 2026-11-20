@@ -1,0 +1,22 @@
+# Local kind cluster: two API replicas behind the Redis backplane, demo data on, small requests.
+api:
+  replicaCount: 2
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits: { cpu: "1", memory: 256Mi }
+
+redisBackplane:
+  enabled: true
+
+redis:
+  enabled: true
+
+config:
+  seedDemoData: true
+
+secrets:
+  dbPassword: dev-only-change-me
+  demoPassword: dev-only-demo-pass
+
+ingress:
+  host: listmate.localtest.me

@@ -1,0 +1,14 @@
+# Local kind cluster: one API pod (in-memory STOMP broker), demo data on.
+api:
+  resources:
+    requests: { cpu: 50m, memory: 256Mi }
+    limits: { cpu: "1", memory: 512Mi }
+
+config:
+  demoData: true
+
+secrets:
+  dbPassword: dev-only-change-me
+
+ingress:
+  host: tripsplit.localtest.me

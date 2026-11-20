@@ -1,0 +1,55 @@
+# Prod-like AKS values. Nothing here is deployed by this repo; see environments/aks/README.md.
+# Every name below is a placeholder.
+api:
+  image:
+    repository: myregistry.azurecr.io/listmate-api
+    tag: "0.1.0"
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 70
+  # Migrations run as a release step (pipeline job), not from every pod.
+  migrateOnStartup: false
+
+web:
+  image:
+    repository: myregistry.azurecr.io/listmate-web
+    tag: "0.1.0"
+  replicaCount: 2
+
+# Azure Cache for Redis carries the SignalR backplane; the connection string comes from Key Vault.
+redisBackplane:
+  enabled: true
+redis:
+  enabled: false
+
+# Azure Database for PostgreSQL Flexible Server instead of the in-cluster StatefulSet.
+postgres:
+  enabled: false
+database:
+  host: listmate-pg.postgres.database.azure.com
+  extraParams: "SSL Mode=Require"
+
+# Synced from Azure Key Vault by the Secrets Store CSI driver (SecretProviderClass with secretObjects).
+# Keys: password, redis-connection.
+secrets:
+  existingSecret: listmate-secrets
+  dbPassword: ""
+
+# Workload Identity: the pod gets a federated token for a user-assigned managed identity (Key Vault access).
+serviceAccount:
+  annotations:
+    azure.workload.identity/client-id: "<managed-identity-client-id>"
+podLabels:
+  azure.workload.identity/use: "true"
+
+# AKS application routing add-on (managed NGINX). For Application Gateway use className azure-application-gateway.
+ingress:
+  className: webapprouting.kubernetes.azure.com
+  host: listmate.example.com
+  tls:
+    - hosts: [listmate.example.com]
+      secretName: listmate-tls
+networkPolicy:
+  ingressControllerNamespace: app-routing-system

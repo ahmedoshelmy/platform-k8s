@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: listmate
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: platform
+  source:
+    repoURL: https://github.com/ahmedoshelmy/platform-k8s.git
+    targetRevision: main
+    path: charts/listmate
+    helm:
+      releaseName: listmate
+      # Swap for ../../environments/aks/listmate.yaml in the AKS cluster's copy of this Application.
+      valueFiles:
+        - ../../environments/dev/listmate.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: listmate
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff: { duration: 10s, factor: 2, maxDuration: 3m }
+  # The HPA owns the replica count; do not fight it on every sync.
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      name: listmate-api
+      jsonPointers: [/spec/replicas]
