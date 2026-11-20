@@ -1,0 +1,12 @@
+apiVersion: v2
+name: trip-split
+description: Trip Split (shared trip expenses, Spring Boot API + React web) with Postgres.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords: [java, spring-boot, websocket, postgres]
+dependencies:
+  - name: postgres
+    version: 0.1.0
+    repository: file://../postgres
+    condition: postgres.enabled

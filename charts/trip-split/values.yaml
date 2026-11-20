@@ -1,0 +1,84 @@
+# Defaults are safe for a single-node dev cluster. Overlays live in environments/<env>/trip-split.yaml.
+
+api:
+  image:
+    repository: localhost/trip-split-api
+    tag: dev
+    pullPolicy: IfNotPresent
+  # The web image's nginx proxies /api and /ws to http://api:8080, so the API Service must be called "api".
+  serviceName: api
+  # Live updates use Spring's in-memory STOMP broker, so a second replica would split the subscribers.
+  # Set scaleOutReady only after moving to a broker relay (RabbitMQ/ActiveMQ STOMP) or an external pub/sub.
+  replicaCount: 1
+  scaleOutReady: false
+  # The image's "app" user is not numeric, and runAsNonRoot needs a numeric uid to verify.
+  runAsUser: 10001
+  resources:
+    requests: { cpu: 100m, memory: 320Mi }
+    limits: { cpu: "1", memory: 512Mi }
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 4
+    targetCPUUtilizationPercentage: 70
+  extraEnv: []
+
+web:
+  image:
+    repository: localhost/trip-split-web
+    tag: dev
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources:
+    requests: { cpu: 10m, memory: 16Mi }
+    limits: { cpu: 200m, memory: 64Mi }
+
+podDisruptionBudget:
+  minAvailable: 1
+
+config:
+  demoData: false
+  # Origins allowed to open the STOMP WebSocket; the ingress host is added automatically.
+  allowedOrigins: "http://localhost:*,http://127.0.0.1:*"
+
+# Placeholders only: real clusters set secrets.existingSecret (key: password).
+secrets:
+  existingSecret: ""
+  dbPassword: dev-only-change-me
+
+database:
+  host: ""
+  port: 5432
+  name: tripsplit
+  username: tripsplit
+  # Appended to the JDBC URL, e.g. "sslmode=require" for a managed server.
+  extraParams: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+
+podLabels: {}
+
+ingress:
+  enabled: true
+  className: nginx
+  host: tripsplit.localtest.me
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+  tls: []
+
+networkPolicy:
+  enabled: true
+  ingressControllerNamespace: ingress-nginx
+
+postgres:
+  enabled: true
+  auth:
+    database: tripsplit
+    username: tripsplit
+  networkPolicy:
+    allowFrom:
+      app.kubernetes.io/name: trip-split
+      app.kubernetes.io/component: api

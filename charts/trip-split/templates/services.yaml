@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.api.serviceName }}
+  labels:
+    {{- include "tripsplit.labels" (dict "ctx" $ "component" "api") | nindent 4 }}
+spec:
+  selector:
+    {{- include "tripsplit.selectorLabels" (dict "ctx" $ "component" "api") | nindent 4 }}
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "tripsplit.fullname" . }}-web
+  labels:
+    {{- include "tripsplit.labels" (dict "ctx" $ "component" "web") | nindent 4 }}
+spec:
+  selector:
+    {{- include "tripsplit.selectorLabels" (dict "ctx" $ "component" "web") | nindent 4 }}
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

@@ -1,0 +1,29 @@
+{{/* A PDB on a single-replica tier would block node drains forever, so only render one where it can be honoured. */}}
+{{- $apiScaled := or .Values.api.autoscaling.enabled (gt (int .Values.api.replicaCount) 1) -}}
+{{- if $apiScaled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "tripsplit.fullname" . }}-api
+  labels:
+    {{- include "tripsplit.labels" (dict "ctx" $ "component" "api") | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "tripsplit.selectorLabels" (dict "ctx" $ "component" "api") | nindent 6 }}
+{{- end }}
+{{- if gt (int .Values.web.replicaCount) 1 }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "tripsplit.fullname" . }}-web
+  labels:
+    {{- include "tripsplit.labels" (dict "ctx" $ "component" "web") | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "tripsplit.selectorLabels" (dict "ctx" $ "component" "web") | nindent 6 }}
+{{- end }}

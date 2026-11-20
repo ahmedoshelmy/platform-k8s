@@ -1,0 +1,11 @@
+Trip Split is installed as release "{{ .Release.Name }}" in namespace "{{ .Release.Namespace }}".
+
+API replicas: {{ if .Values.api.autoscaling.enabled }}HPA {{ .Values.api.autoscaling.minReplicas }}-{{ .Values.api.autoscaling.maxReplicas }}{{ else }}{{ .Values.api.replicaCount }}{{ end }} (in-memory STOMP broker: one pod unless api.scaleOutReady)
+
+Try it without an ingress controller:
+  kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "tripsplit.fullname" . }}-web 8080:80
+  open http://localhost:8080
+{{- if .Values.ingress.enabled }}
+
+Through the ingress: http://{{ .Values.ingress.host }}/
+{{- end }}
