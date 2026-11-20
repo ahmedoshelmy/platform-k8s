@@ -1,0 +1,16 @@
+apiVersion: v2
+name: listmate
+description: Listmate (shared shopping lists, .NET API + React web) with Postgres and an optional Redis SignalR backplane.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords: [dotnet, signalr, postgres, redis]
+dependencies:
+  - name: postgres
+    version: 0.1.0
+    repository: file://../postgres
+    condition: postgres.enabled
+  - name: redis
+    version: 0.1.0
+    repository: file://../redis
+    condition: redis.enabled

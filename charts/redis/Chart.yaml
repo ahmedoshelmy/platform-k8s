@@ -1,0 +1,7 @@
+apiVersion: v2
+name: redis
+description: A single in-memory Redis used as a SignalR backplane and shared key ring in dev clusters. Use a managed cache in production.
+type: application
+version: 0.1.0
+appVersion: "7"
+keywords: [redis, backplane]

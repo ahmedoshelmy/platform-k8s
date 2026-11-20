@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "listmate.fullname" . }}-api
+  labels:
+    {{- include "listmate.labels" (dict "ctx" $ "component" "api") | nindent 4 }}
+data:
+  Listmate__MigrateOnStartup: {{ .Values.api.migrateOnStartup | quote }}
+  Listmate__SeedDemoData: {{ .Values.config.seedDemoData | quote }}
+  Retention__ProcessedMutationDays: {{ .Values.config.mutationRetentionDays | quote }}
+  OTEL_EXPORTER_OTLP_ENDPOINT: {{ .Values.config.otlpEndpoint | quote }}
+  ASPNETCORE_URLS: "http://+:8080"
+  DOTNET_gcServer: "0"

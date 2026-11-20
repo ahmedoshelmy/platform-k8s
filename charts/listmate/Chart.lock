@@ -1,0 +1,9 @@
+dependencies:
+- name: postgres
+  repository: file://../postgres
+  version: 0.1.0
+- name: redis
+  repository: file://../redis
+  version: 0.1.0
+digest: sha256:4f4bd17792cca7cebacd24cfcec7ddea895fb743f5be666ae337478ed4698338
+generated: "2026-11-21T01:24:10.659117603+02:00"

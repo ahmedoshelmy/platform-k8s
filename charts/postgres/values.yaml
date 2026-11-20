@@ -1,0 +1,26 @@
+# Single-instance PostgreSQL for dev/kind. Production overlays set enabled: false and point the app at a managed server.
+image:
+  repository: docker.io/library/postgres
+  tag: 17-alpine
+  pullPolicy: IfNotPresent
+
+auth:
+  database: app
+  username: app
+  # Secret (created by the parent chart) holding the password; templated, so it may use the release name.
+  existingSecret: "{{ .Release.Name }}-db"
+  passwordKey: password
+
+persistence:
+  size: 1Gi
+  # Empty = the cluster's default StorageClass.
+  storageClass: ""
+
+resources:
+  requests: { cpu: 50m, memory: 128Mi }
+  limits: { cpu: 500m, memory: 256Mi }
+
+# Only pods carrying these labels (the API) may open a connection to the database.
+networkPolicy:
+  enabled: true
+  allowFrom: {}

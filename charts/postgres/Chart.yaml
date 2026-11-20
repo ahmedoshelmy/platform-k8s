@@ -1,0 +1,7 @@
+apiVersion: v2
+name: postgres
+description: A deliberately small single-instance PostgreSQL StatefulSet for dev clusters. Use a managed database in production.
+type: application
+version: 0.1.0
+appVersion: "17"
+keywords: [postgres, statefulset]

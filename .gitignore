@@ -1,0 +1,17 @@
+# Packaged subcharts are rebuilt by `helm dependency build`
+charts/*/charts/*.tgz
+*.tgz
+# Local rendering and kubeconfigs
+.out/
+*.kubeconfig
+kubeconfig
+# Secrets never live in this repo
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
