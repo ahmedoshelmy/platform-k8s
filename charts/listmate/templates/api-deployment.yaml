@@ -36,6 +36,27 @@ spec:
           labelSelector:
             matchLabels:
               {{- include "listmate.selectorLabels" (dict "ctx" $ "component" "api") | nindent 14 }}
+      {{- if .Values.waitForDatabase.enabled }}
+      # Wait (bounded) until Postgres answers, so the API's first start does not crash-loop on DNS/connection errors.
+      initContainers:
+        - name: wait-for-database
+          image: {{ .Values.waitForDatabase.image | quote }}
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - for i in $(seq 1 90); do pg_isready -q -h "$DB_HOST" -p "$DB_PORT" && exit 0; sleep 2; done; echo "database not ready"; exit 1
+          env:
+            - { name: DB_HOST, value: {{ include "listmate.dbHost" . | quote }} }
+            - { name: DB_PORT, value: {{ .Values.database.port | quote }} }
+          resources:
+            requests: { cpu: 5m, memory: 8Mi }
+            limits: { cpu: 100m, memory: 32Mi }
+          securityContext:
+            runAsUser: 70
+            runAsGroup: 70
+            {{- include "listmate.containerSecurityContext" . | nindent 12 }}
+      {{- end }}
       containers:
         - name: api
           image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.tag }}"

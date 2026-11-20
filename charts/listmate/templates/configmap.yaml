@@ -11,3 +11,6 @@ data:
   OTEL_EXPORTER_OTLP_ENDPOINT: {{ .Values.config.otlpEndpoint | quote }}
   ASPNETCORE_URLS: "http://+:8080"
   DOTNET_gcServer: "0"
+  # appsettings never change inside an image; skipping the file watcher saves an inotify instance per pod
+  # (busy nodes hit fs.inotify.max_user_instances and the API would crash on start).
+  DOTNET_hostBuilder__reloadConfigOnChange: "false"

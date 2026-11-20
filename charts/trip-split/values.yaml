@@ -33,6 +33,11 @@ web:
     requests: { cpu: 10m, memory: 16Mi }
     limits: { cpu: 200m, memory: 64Mi }
 
+# Init container that blocks the API until Postgres accepts connections (pg_isready).
+waitForDatabase:
+  enabled: true
+  image: docker.io/library/postgres:17-alpine
+
 podDisruptionBudget:
   minAvailable: 1
 
