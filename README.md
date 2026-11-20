@@ -111,14 +111,25 @@ Locally (rootless podman, kind v0.25.0, Kubernetes v1.31.2, helm v3.16.3, kubeco
   list, read it back four times through the web pod's nginx and the `api` Service).
 - NetworkPolicies enforced by kindnet: from another namespace, Redis and the web Service time out; inside the
   namespace, a pod with the API's labels gets `PONG` from Redis and an unlabelled pod is blocked.
-- trip-split installed and smoke-tested separately (see the CI job for the same steps).
+- trip-split installed and smoke-tested separately: create a trip, add an expense, balances net to zero.
+- `scripts/up.sh` + `scripts/smoke.sh` end to end with `BUILD=0` (images built earlier from the app repositories'
+  Dockerfiles and tagged `localhost/<app>-<tier>:dev`); one app at a time, cluster deleted afterwards.
 
 In CI only (`.github/workflows/ci.yml`): building the images from the app repositories inside the runner and the
 same install + smoke on a fresh kind cluster per app.
 
-Findings from the first install, now handled in the charts: the demo seed password must satisfy the Identity
-password rules, and the Redis connection string uses `abortConnect=false` so an API pod that starts before Redis
-retries instead of crashing.
+Findings from the first installs, now handled in the charts:
+
+- The demo seed password must satisfy the ASP.NET Identity password rules.
+- An API pod that started before Redis crashed: the Redis connection string now carries `abortConnect=false`.
+- An API pod that started before Postgres had a DNS record crashed: a `wait-for-database` init container
+  (`pg_isready`, bounded to 3 minutes, non-root) now gates the API container.
+- On a busy node the .NET API crashed with "inotify instances limit reached" (the kind node shares the host's
+  `fs.inotify.max_user_instances`). Config files never change inside an image, so the chart sets
+  `DOTNET_hostBuilder__reloadConfigOnChange=false` and the file watcher is never created.
+
+After these fixes a fresh trip-split install starts with 0 restarts, and a fresh listmate install with at most one
+restart (the demo-seed race below).
 
 ## Honest limits
 
