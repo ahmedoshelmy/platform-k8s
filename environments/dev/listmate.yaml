@@ -16,7 +16,7 @@ config:
 
 secrets:
   dbPassword: dev-only-change-me
-  demoPassword: dev-only-demo-pass
+  demoPassword: Dev-only-demo-1  # must satisfy the Identity password rules
 
 ingress:
   host: listmate.localtest.me

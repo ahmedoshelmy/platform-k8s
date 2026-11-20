@@ -38,7 +38,7 @@ smoke_listmate() {
   # Read it back several times: with two replicas behind the Service, some reads land on the other pod,
   # which only works when both share the Redis key ring that protects the token.
   for _ in 1 2 3 4; do
-    name=$(curl -fsS "$web/api/lists/$list_id" -H "Authorization: Bearer $token" | jq -r .name)
+    name=$(curl -fsS "$web/api/lists/$list_id" -H "Authorization: Bearer $token" | jq -r .list.name)
     [ "$name" = "Cluster groceries" ] || { echo "FAIL listmate read-back gave '$name'"; return 1; }
   done
   echo "listmate: register -> login -> create list -> 4 read-backs OK"
