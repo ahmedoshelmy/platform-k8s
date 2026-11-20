@@ -31,7 +31,13 @@ kubectl config use-context "kind-$CLUSTER" >/dev/null
 
 load() {
   local image="$1" archive="$WORK/$(echo "$1" | tr '/:' '__').tar"
-  docker save "$image" -o "$archive"
+  # Docker 25+ with the containerd image store saves the whole multi-arch index but only the local platform's
+  # layers, and kind's `ctr import --all-platforms` then fails. Save just the platform the node runs.
+  if docker save --help 2>/dev/null | grep -q -- '--platform'; then
+    docker save --platform "linux/$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')" "$image" -o "$archive"
+  else
+    docker save "$image" -o "$archive"
+  fi
   kind load image-archive "$archive" --name "$CLUSTER"
   rm -f "$archive"
 }
