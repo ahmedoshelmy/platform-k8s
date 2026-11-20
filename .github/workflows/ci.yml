@@ -1,0 +1,90 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  HELM_VERSION: v3.16.3
+  KUBECONFORM_VERSION: v0.6.7
+
+jobs:
+  validate:
+    name: helm lint + kubeconform
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Install kubeconform
+        run: |
+          curl -fsSLO "https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz"
+          curl -fsSLO "https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/CHECKSUMS"
+          grep "kubeconform-linux-amd64.tar.gz$" CHECKSUMS | sha256sum -c
+          tar xzf kubeconform-linux-amd64.tar.gz kubeconform
+          sudo install -m755 kubeconform /usr/local/bin/
+
+      - name: Lint, render, validate (Kubernetes 1.31 schemas, strict)
+        run: scripts/validate.sh
+
+  kind:
+    name: kind install + smoke (${{ matrix.app }})
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [listmate, trip-split]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: platform-k8s
+
+      # The application source lives in its own repository; build the images here, never push them.
+      - uses: actions/checkout@v4
+        with:
+          repository: ahmedoshelmy/${{ matrix.app }}
+          path: ${{ matrix.app }}
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1
+        with:
+          version: v0.25.0
+          cluster_name: platform
+          config: platform-k8s/kind/cluster.yaml
+
+      - name: Build images, kind load, helm install
+        working-directory: platform-k8s
+        env:
+          APPS_DIR: ${{ github.workspace }}
+          BUILD: "1"
+          DOCKER_BUILDKIT: "1"
+        run: scripts/up.sh ${{ matrix.app }}
+
+      - name: Smoke (port-forward + curl)
+        working-directory: platform-k8s
+        run: scripts/smoke.sh ${{ matrix.app }}
+
+      - name: Diagnostics on failure
+        if: failure()
+        run: |
+          kubectl get pods,svc,netpol,pdb,hpa -A -o wide || true
+          kubectl -n ${{ matrix.app }} describe pods || true
+          kubectl -n ${{ matrix.app }} logs -l app.kubernetes.io/component=api --tail=200 --all-containers || true
