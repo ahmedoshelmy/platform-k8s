@@ -49,7 +49,12 @@ for app in "${APPS[@]}"; do
   for tier in api web; do
     image="localhost/$app-$tier:$TAG"
     if [ "$BUILD" = 1 ]; then
-      docker build -t "$image" "$APPS_DIR/${CONTEXT[$app-$tier]}"
+      # BuildKit adds a provenance attestation, turning the image into a manifest list kind can't import.
+      if docker build --help 2>/dev/null | grep -q -- '--provenance'; then
+        docker build --provenance=false --sbom=false -t "$image" "$APPS_DIR/${CONTEXT[$app-$tier]}"
+      else
+        docker build -t "$image" "$APPS_DIR/${CONTEXT[$app-$tier]}"
+      fi
     fi
     load "$image"
   done
