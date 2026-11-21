@@ -1,4 +1,4 @@
-# platform-k8s
+# Platform K8s
 
 [![CI](https://github.com/ahmedoshelmy/platform-k8s/actions/workflows/ci.yml/badge.svg)](https://github.com/ahmedoshelmy/platform-k8s/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
