@@ -1,5 +1,10 @@
 # platform-k8s
 
+[![CI](https://github.com/ahmedoshelmy/platform-k8s/actions/workflows/ci.yml/badge.svg)](https://github.com/ahmedoshelmy/platform-k8s/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+Part of the [systems portfolio](https://github.com/ahmedoshelmy/systems-portfolio).
+
 Two small production-style applications, run on Kubernetes the way a team would ship them: Helm charts with
 probes, resource limits, non-root read-only containers, HPA, PodDisruptionBudgets and NetworkPolicies; a local
 kind cluster for development and CI; value overlays that map the same charts onto AKS; and Argo CD manifests for
@@ -44,7 +49,7 @@ charts/redis         tiny in-memory Redis subchart
 environments/dev     values for kind (2 listmate API replicas + Redis, demo data)
 environments/aks     prod-like values: managed Postgres/Redis, Key Vault secret, Workload Identity, app routing ingress
 gitops/              Argo CD root Application (app of apps), AppProject, one Application per app
-kind/cluster.yaml    single-node kind cluster, Kubernetes 1.31
+kind/cluster.yaml    single-node kind cluster (node image = the kind release's default)
 scripts/             validate.sh (lint + kubeconform), up.sh, smoke.sh, down.sh
 docs/adr/            decisions: ADRs, Helm vs Kustomize, in-repo stateful deps vs operators, GitOps
 ```
